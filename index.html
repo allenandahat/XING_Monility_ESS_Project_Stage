@@ -95,7 +95,7 @@
               keyPoints: [
                 "Sales 蒐集基本需求、交期、案場位置、預算與決策鏈。",
                 "PM/ASM 先做初步技術可行性判斷與案型分級。",
-                "建立專案代號、窗口、版本控管與SSOT。"
+                "提供初步成本報價讓客戶確認後，才正式立案並建立專案代號與SSOT。"
               ],
               flow: [
                 { type: "step", text: "客戶需求 / 商機 / 標案進入" },
@@ -103,8 +103,8 @@
                 { type: "step", text: "PM/ASM 判斷案型\n(標準案/客製案/高風險案)" },
                 { type: "step", text: "盤點案場條件/法規/電力/消防/地主要求" },
                 { type: "step", text: "初步技術可行性會議" },
-                { type: "step", text: "建立專案代號/窗口/版本控管/SSOT" },
-                { type: "decision", text: "是否進入正式專案?", yes: "正式立案與 Kickoff 排程", no: "商機保留/持續追蹤" }
+                { type: "step", text: "初步成本報價與客戶確認" },
+                { type: "decision", text: "是否確認報價並進入正式專案?", yes: "建立專案代號/窗口/SSOT →\n正式立案與 Kickoff 排程", no: "客戶拒絕 → 商機保留/持續追蹤" }
               ]
             },
             {
