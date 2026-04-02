@@ -1,584 +1,610 @@
-import React, { useState } from 'react';
-import { 
-  Home, ClipboardList, Users, PenTool, ShoppingCart, 
-  HardHat, Map, Wrench, Zap, Activity, 
-  CheckCircle, ShieldCheck, Menu, X, ArrowDown, AlertTriangle, Play
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行競公司儲能櫃專案標準流程</title>
+    
+    <!-- 引入 React 與 ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- 引入 Babel 用於在瀏覽器內即時編譯 JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- 引入 Tailwind CSS 用於網頁排版與美化 -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-// --- 資料定義區 ---
-const projectData = {
-  overview: {
-    title: "行競公司儲能櫃專案",
-    subtitle: "開案到結案標準流程圖 (整合合約、施工/驗收規範與ASM/FAE 前移管理視角)",
-    date: "2026-04-02",
-    positioning: [
-      "用途：作為行競儲能櫃專案從開案到結案的標準流程版本。",
-      "適用角色：Sales、PM、ASM/FAE、RD、SCM、工務、品保與售後團隊。",
-      "使用方式：可直接拿去做內部流程、RACI、Gate Checklist、教育訓練與專案啟動基準。"
-    ],
-    highlights: [
-      "不是只畫施工流程，而是把售前、設計、施工、驗收、移交、保固完整串起來。",
-      "每個關鍵節點都要有 Gate，不符合條件就不能硬往下推。",
-      "文件、照片、量測、缺失單與簽認都要綁流程，避免專案靠個人經驗運作。"
-    ],
-    principles: [
-      "核心原則：ASM/FAE前移，不等設備到場才接手。",
-      "每個大階段都設Gate：設計核准、進場前、設備驗收、送電、正式移交。",
-      "文件、照片、量測、缺失清單與簽認需綁在流程內，不靠個人記憶運作。"
-    ],
-    gates: [
-      { name: "設計核准 Gate", desc: "圖說/BOM/驗收基準一致。" },
-      { name: "進場前 Gate", desc: "人員、保險、工安、照片、自檢表齊備。" },
-      { name: "設備驗收 Gate", desc: "型號、序號、安裝、接地、安全條件合格。" },
-      { name: "送電 Gate", desc: "文件與設備條件，才允許上電。" },
-      { name: "正式移交 Gate", desc: "缺失清零、文件交齊、教育訓練完成。" }
-    ]
-  },
-  stages: [
-    {
-      id: 1,
-      icon: <ClipboardList size={20} />,
-      title: "階段 1 | 商機進入到正式立案",
-      goal: "在報價或立案前先判斷是否屬於標準案、客製案或高風險案，避免後續接單後才發現責任範圍、法規或案場條件不可控。",
-      keyPoints: [
-        "Sales 蒐集基本需求、交期、案場位置、預算與決策鏈。",
-        "PM/ASM 先做初步技術可行性判斷與案型分級。",
-        "建立專案代號、窗口、版本控管與SSOT。"
-      ],
-      flow: [
-        { type: "step", text: "客戶需求 / 商機 / 標案進入" },
-        { type: "step", text: "Sales 蒐集基本需求" },
-        { type: "step", text: "PM/ASM 判斷案型\n(標準案/客製案/高風險案)" },
-        { type: "step", text: "盤點案場條件/法規/電力/消防/地主要求" },
-        { type: "step", text: "初步技術可行性會議" },
-        { type: "step", text: "建立專案代號/窗口/版本控管/SSOT" },
-        { type: "decision", text: "是否進入正式專案?", yes: "正式立案與 Kickoff 排程", no: "商機保留/持續追蹤" }
-      ]
-    },
-    {
-      id: 2,
-      icon: <Users size={20} />,
-      title: "階段 2 | Kickoff 與責任界面確認",
-      goal: "在專案一開始就把 Scope、RACI、交付物與待決議事項講清楚，讓每個單位都知道自己要交什麼、何時交、依哪個版本交，降低後續跨部門扯皮與客戶期待落差。",
-      keyPoints: [
-        "確認客戶需求、里程碑、現場限制與成功定義。",
-        "定義 RACI:誰對客戶、誰對設計、誰對施工、誰對驗收、誰對售後。",
-        "凍結第一版需求基線與 Action List。"
-      ],
-      flow: [
-        { type: "step", text: "Kickoff 會議" },
-        { type: "step", text: "確認客戶需求 / 案場限制 / 時程目標" },
-        { type: "step", text: "確認專案範疇 Scope" },
-        { type: "step", text: "確認責任界面 RACI" },
-        { type: "step", text: "確認交付物清單" },
-        { type: "step", text: "確認風險與待決議事項" },
-        { type: "step", text: "建立會議紀錄 / Action List / 版本清單" },
-        { type: "step", text: "凍結第一版需求基線", highlight: true }
-      ]
-    },
-    {
-      id: 3,
-      icon: <PenTool size={20} />,
-      title: "階段 3 | 細部設計與送審",
-      goal: "把圖說、BOM、施工方法與驗收基準做成可執行的施工版文件。確保後續採購、生產、現場施工與驗收都以同一套核准版本為準，避免「圖一套、做一套、驗一套」。",
-      keyPoints: [
-        "整理設計輸入條件，輸出配置圖、單線圖、盤圖、回路表、接地圖與施工詳圖。",
-        "同步確認設備規格、材料表、測試方法與驗收基準。",
-        "送客戶/甲方審查，退件即修正再送。"
-      ],
-      flow: [
-        { type: "step", text: "啟動細部設計" },
-        { type: "step", text: "整理設計輸入條件" },
-        { type: "step", text: "產出配置圖/單線圖/盤圖/接地圖/施工詳圖" },
-        { type: "step", text: "確認設備規格/BOM/材料表" },
-        { type: "step", text: "確認施工方法/測試方法/驗收基準" },
-        { type: "step", text: "提送甲方/客戶/地主審查" },
-        { type: "decision", text: "是否核准?", yes: "設計凍結 / 發行施工版文件", no: "彙整退件意見 → 修圖/修BOM/修時程/修責任界面 → 重新提送" }
-      ]
-    },
-    {
-      id: 4,
-      icon: <ShoppingCart size={20} />,
-      title: "階段 4 | 採購、備料、生產與出貨準備",
-      goal: "確保料件、盤體、設備與出貨資料都具可追溯性。在設備離開工廠前就把型號、序號、外觀、配線與出貨文件處理完整，減少案場到貨後才補件或返工。",
-      keyPoints: [
-        "SCM 依施工版文件下單，特別盯長交期料件與客製件。",
-        "工廠完成盤體製作、預組裝、標示與OQC。",
-        "物流、吊裝、卸貨動線與案場暫存區需事先確認。"
-      ],
-      flow: [
-        { type: "step", text: "施工版文件核准" },
-        { type: "step", text: "SCM/採購下單" },
-        { type: "step", text: "確認長交期料件" },
-        { type: "step", text: "工廠生產/盤體製作/標示/預組裝" },
-        { type: "step", text: "出貨前檢查/OQC/序號建檔" },
-        { type: "step", text: "準備裝箱清單/型號序號清單/出廠文件" },
-        { type: "step", text: "安排物流/吊裝/卸貨計畫" },
-        { type: "step", text: "確認到貨日/暫存區/現場動線", highlight: true }
-      ]
-    },
-    {
-      id: 5,
-      icon: <HardHat size={20} />,
-      title: "階段 5 | 施工前準備",
-      goal: "進場前先完成點交、人員、工安、文件與施工節點確認。建立進場 Gate，避免人員、材料、保險、工安或文件條件未齊就開工。",
-      keyPoints: [
-        "完成工地/材料/設備點交與場勘紀錄。",
-        "提交施工人員名冊、保險資料、施工進度表與自檢表。",
-        "確認 PPE、動線、禁入區、高空作業與施工許可。"
-      ],
-      flow: [
-        { type: "step", text: "施工前準備" },
-        { type: "step", text: "工地/材料/設備點交" },
-        { type: "step", text: "施工人員名冊與保險資料提交" },
-        { type: "step", text: "工安計畫/PPE/禁入/動線/施工許可" },
-        { type: "step", text: "施工進度表確認" },
-        { type: "step", text: "重要節點自檢表送審" },
-        { type: "step", text: "施工前照片與場勘紀錄" },
-        { type: "step", text: "確認可進場施工", highlight: true }
-      ]
-    },
-    {
-      id: 6,
-      icon: <Map size={20} />,
-      title: "階段 6 | 第一階段工程:現場條件建置",
-      goal: "先把設備安全進場與安裝所需的基礎條件做對。完成基礎、接地、配管、鋼構與防護等前置工程，讓第二階段設備能在合格條件下進場。",
-      keyPoints: [
-        "整地、基礎、線溝、配管、穿牆、防水封堵與接地施工。",
-        "確認承載、平整度、動線、鋼構與消防路徑。",
-        "重要節點完成自檢後，才能開放設備進場。"
-      ],
-      flow: [
-        { type: "step", text: "第一階段工程" },
-        { type: "step", text: "整地/基礎/土建" },
-        { type: "step", text: "線溝/配管/穿牆/防水封堵" },
-        { type: "step", text: "接地系統施工" },
-        { type: "step", text: "鋼構/圍籬/消防路徑預備" },
-        { type: "step", text: "重要節點自檢" },
-        { type: "decision", text: "條件是否符合設備進場?", yes: "開放第二階段設備進場", no: "改善現場條件 → 重新自檢" }
-      ]
-    },
-    {
-      id: 7,
-      icon: <Wrench size={20} />,
-      title: "階段 7 | 第二階段工程:設備進場、安裝與整合",
-      goal: "把櫃體、盤體、動力線、控制線、通訊線與附屬系統完整接起來。完成設備定位、固定、配線、接地、標示、消防與冷卻等整合工作，並留下可驗證的施工證據。",
-      keyPoints: [
-        "設備卸貨、吊掛、定位、水平與固定。",
-        "動力線、控制線、通訊線分流施工，端子壓接與標示完整。",
-        "冷卻、消防、UPS、偵測與接地整合完成。"
-      ],
-      flow: [
-        { type: "step", text: "設備進場" },
-        { type: "step", text: "卸貨/吊掛/外觀確認" },
-        { type: "step", text: "櫃體定位/水平/固定" },
-        { type: "step", text: "PCS/EMS/盤體/AMI 安裝" },
-        { type: "step", text: "動力線/控制線/通訊線分流施工" },
-        { type: "step", text: "端子壓接/線號標示/回路標示" },
-        { type: "step", text: "冷卻/消防/偵測/UPS整合" },
-        { type: "step", text: "接地完整性確認" },
-        { type: "step", text: "清場與完工狀態整理", highlight: true }
-      ]
-    },
-    {
-      id: 8,
-      icon: <Zap size={20} />,
-      title: "階段 8 | 送電前檢查與設備驗收",
-      goal: "先驗設備與安全條件，再允許進入上電調試。建立送電 Gate，避免在文件未齊、設備未核對或安全條件未確認的狀況下直接上電。",
-      keyPoints: [
-        "核對文件版本、型號、序號、安裝狀態與標示。",
-        "完成接地、絕緣、漏電與E-Stop 安全確認。",
-        "設備驗收不合格時，先改善再驗，不得跳過。"
-      ],
-      flow: [
-        { type: "step", text: "送電前檢查" },
-        { type: "step", text: "文件版本確認" },
-        { type: "step", text: "型號/序號/安裝狀態核對" },
-        { type: "step", text: "接地阻值/絕緣/漏電量測" },
-        { type: "step", text: "E-Stop/安全條件確認" },
-        { type: "step", text: "設備驗收單逐項檢查" },
-        { type: "decision", text: "設備驗收是否合格?", yes: "允許進入上電與調試", no: "缺失改善/補件/補測 → 重新驗收" }
-      ]
-    },
-    {
-      id: 9,
-      icon: <Activity size={20} />,
-      title: "階段 9 | 上電、調試、現場驗收與性能測試",
-      goal: "依 SOP 做上電與整合驗證，確認系統能安全且穩定運轉。驗證待機、運轉、停機、保護邏輯、通訊、冷卻、UPS與充放電性能，形成可交付的現場驗收結果。",
-      keyPoints: [
-        "依上電 SOP執行並留存紀錄，確認HMI/EMS/PCS/電池狀態正常。",
-        "測試 E-Stop、保護邏輯、通訊失聯、冷卻與消防聯動。",
-        "完成功率、容量、效率與趨勢紀錄。"
-      ],
-      flow: [
-        { type: "step", text: "上電前會議" },
-        { type: "step", text: "依 SOP 執行上電" },
-        { type: "step", text: "待機/運轉/停機流程測試" },
-        { type: "step", text: "HMI/EMS/PCS/電池狀態確認" },
-        { type: "step", text: "通訊/電表/告警/事件紀錄確認" },
-        { type: "step", text: "保護邏輯測試" },
-        { type: "step", text: "冷卻/UPS/消防聯動確認" },
-        { type: "step", text: "功率/容量/效率趨勢紀錄" },
-        { type: "decision", text: "現場驗收是否合格?", yes: "進入正式驗收與移交", no: "缺失改善/重測/補測 → 重新驗收" }
-      ]
-    },
-    {
-      id: 10,
-      icon: <CheckCircle size={20} />,
-      title: "階段 10 | 缺失管理、正式驗收與移交",
-      goal: "把缺失清單清零，文件交齊，才算真正交付。透過缺失單、責任人與期限管理，完成複驗、教育訓練與正式簽認，避免帶病移交。",
-      keyPoints: [
-        "建立缺失清單並指定責任單位、期限與補證要求。",
-        "缺失未清零前，不視為驗收完成。",
-        "完成教育訓練、文件交底與正式移交。"
-      ],
-      flow: [
-        { type: "step", text: "彙整驗收結果" },
-        { type: "step", text: "建立缺失清單" },
-        { type: "step", text: "指派責任單位與期限" },
-        { type: "decision", text: "缺失是否清零?", yes: "文件交齊", no: "改善完成並補證據 → 複驗" },
-        { type: "step", text: "教育訓練/操作交底" },
-        { type: "step", text: "正式驗收簽認" },
-        { type: "step", text: "正式移交", highlight: true }
-      ]
-    },
-    {
-      id: 11,
-      icon: <ShieldCheck size={20} />,
-      title: "階段 11 | 試運轉、保固、售後閉環與結案",
-      goal: "不是簽完字就結束，而是要把異常、保固與經驗回寫做完。在試運轉與保固期內持續監控異常、處理RCA、啟動售後支援，最後完成專案複盤與知識沉澱。",
-      keyPoints: [
-        "正式移交後進入試運轉與觀察期，持續追蹤告警與穩定度。",
-        "發生異常由 ASM 主責協調 RCA、改善、再驗證。",
-        "結案時要做成本/時程/風險/缺失回顧，更新SOP 與知識庫。"
-      ],
-      flow: [
-        { type: "step", text: "正式移交後" },
-        { type: "step", text: "試運轉/觀察期" },
-        { type: "step", text: "異常監控/告警追蹤" },
-        { type: "decision", text: "是否有重大缺失?", yes: "ASM 主責協調 RCA/改善/再驗證", no: "保固期起算" },
-        { type: "step", text: "售後 SOP/RMA/維護窗口啟動" },
-        { type: "step", text: "專案結案會議" },
-        { type: "step", text: "成本/風險/時程/缺失回顧" },
-        { type: "step", text: "文件歸檔/模板更新/知識庫沉澱", highlight: true }
-      ]
-    }
-  ]
-};
+    <style>
+        body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+        /* 自訂卷軸樣式 */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.5); border-radius: 10px; }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background-color: rgba(107, 114, 128, 0.8); }
+    </style>
+</head>
+<body>
+    <!-- React 應用程式的掛載點 -->
+    <div id="root"></div>
 
-// --- 元件區 ---
+    <!-- 注意 type 是 text/babel，這會讓 Babel 知道要編譯這段程式碼 -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-const FlowChart = ({ flowData }) => {
-  return (
-    <div className="flex flex-col items-center py-8 w-full max-w-2xl mx-auto space-y-2">
-      {flowData.map((node, index) => {
-        const isLast = index === flowData.length - 1;
-        
-        if (node.type === 'step') {
+        // --- 內建 SVG 圖示庫 (取代原本的 lucide-react 以支援單一 HTML 執行) ---
+        const Icon = ({ path, size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {path}
+            </svg>
+        );
+        const Home = (p) => <Icon {...p} path={<><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>} />;
+        const ClipboardList = (p) => <Icon {...p} path={<><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></>} />;
+        const Users = (p) => <Icon {...p} path={<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>} />;
+        const PenTool = (p) => <Icon {...p} path={<><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></>} />;
+        const ShoppingCart = (p) => <Icon {...p} path={<><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></>} />;
+        const HardHat = (p) => <Icon {...p} path={<><path d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z"/><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M4 15v-3a6 6 0 0 1 6-6h0"/><path d="M14 6h0a6 6 0 0 1 6 6v3"/></>} />;
+        const MapIcon = (p) => <Icon {...p} path={<><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></>} />;
+        const Wrench = (p) => <Icon {...p} path={<><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></>} />;
+        const Zap = (p) => <Icon {...p} path={<><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>} />;
+        const Activity = (p) => <Icon {...p} path={<><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></>} />;
+        const CheckCircle = (p) => <Icon {...p} path={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>} />;
+        const ShieldCheck = (p) => <Icon {...p} path={<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></>} />;
+        const Menu = (p) => <Icon {...p} path={<><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></>} />;
+        const X = (p) => <Icon {...p} path={<><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></>} />;
+        const ArrowDown = (p) => <Icon {...p} path={<><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></>} />;
+        const AlertTriangle = (p) => <Icon {...p} path={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>} />;
+        const Play = (p) => <Icon {...p} path={<><polygon points="5 3 19 12 5 21 5 3"/></>} />;
+
+
+        // --- 資料定義區 ---
+        const projectData = {
+          overview: {
+            title: "行競公司儲能櫃專案",
+            subtitle: "開案到結案標準流程圖 (整合合約、施工/驗收規範與ASM/FAE 前移管理視角)",
+            date: "2026-04-02",
+            positioning: [
+              "用途：作為行競儲能櫃專案從開案到結案的標準流程版本。",
+              "適用角色：Sales、PM、ASM/FAE、RD、SCM、工務、品保與售後團隊。",
+              "使用方式：可直接拿去做內部流程、RACI、Gate Checklist、教育訓練與專案啟動基準。"
+            ],
+            highlights: [
+              "不是只畫施工流程，而是把售前、設計、施工、驗收、移交、保固完整串起來。",
+              "每個關鍵節點都要有 Gate，不符合條件就不能硬往下推。",
+              "文件、照片、量測、缺失單與簽認都要綁流程，避免專案靠個人經驗運作。"
+            ],
+            principles: [
+              "核心原則：ASM/FAE前移，不等設備到場才接手。",
+              "每個大階段都設Gate：設計核准、進場前、設備驗收、送電、正式移交。",
+              "文件、照片、量測、缺失清單與簽認需綁在流程內，不靠個人記憶運作。"
+            ],
+            gates: [
+              { name: "設計核准 Gate", desc: "圖說/BOM/驗收基準一致。" },
+              { name: "進場前 Gate", desc: "人員、保險、工安、照片、自檢表齊備。" },
+              { name: "設備驗收 Gate", desc: "型號、序號、安裝、接地、安全條件合格。" },
+              { name: "送電 Gate", desc: "文件與設備條件，才允許上電。" },
+              { name: "正式移交 Gate", desc: "缺失清零、文件交齊、教育訓練完成。" }
+            ]
+          },
+          stages: [
+            {
+              id: 1,
+              icon: <ClipboardList size={20} />,
+              title: "階段 1 | 商機進入到正式立案",
+              goal: "在報價或立案前先判斷是否屬於標準案、客製案或高風險案，避免後續接單後才發現責任範圍、法規或案場條件不可控。",
+              keyPoints: [
+                "Sales 蒐集基本需求、交期、案場位置、預算與決策鏈。",
+                "PM/ASM 先做初步技術可行性判斷與案型分級。",
+                "建立專案代號、窗口、版本控管與SSOT。"
+              ],
+              flow: [
+                { type: "step", text: "客戶需求 / 商機 / 標案進入" },
+                { type: "step", text: "Sales 蒐集基本需求" },
+                { type: "step", text: "PM/ASM 判斷案型\n(標準案/客製案/高風險案)" },
+                { type: "step", text: "盤點案場條件/法規/電力/消防/地主要求" },
+                { type: "step", text: "初步技術可行性會議" },
+                { type: "step", text: "建立專案代號/窗口/版本控管/SSOT" },
+                { type: "decision", text: "是否進入正式專案?", yes: "正式立案與 Kickoff 排程", no: "商機保留/持續追蹤" }
+              ]
+            },
+            {
+              id: 2,
+              icon: <Users size={20} />,
+              title: "階段 2 | Kickoff 與責任界面確認",
+              goal: "在專案一開始就把 Scope、RACI、交付物與待決議事項講清楚，讓每個單位都知道自己要交什麼、何時交、依哪個版本交，降低後續跨部門扯皮與客戶期待落差。",
+              keyPoints: [
+                "確認客戶需求、里程碑、現場限制與成功定義。",
+                "定義 RACI:誰對客戶、誰對設計、誰對施工、誰對驗收、誰對售後。",
+                "凍結第一版需求基線與 Action List。"
+              ],
+              flow: [
+                { type: "step", text: "Kickoff 會議" },
+                { type: "step", text: "確認客戶需求 / 案場限制 / 時程目標" },
+                { type: "step", text: "確認專案範疇 Scope" },
+                { type: "step", text: "確認責任界面 RACI" },
+                { type: "step", text: "確認交付物清單" },
+                { type: "step", text: "確認風險與待決議事項" },
+                { type: "step", text: "建立會議紀錄 / Action List / 版本清單" },
+                { type: "step", text: "凍結第一版需求基線", highlight: true }
+              ]
+            },
+            {
+              id: 3,
+              icon: <PenTool size={20} />,
+              title: "階段 3 | 細部設計與送審",
+              goal: "把圖說、BOM、施工方法與驗收基準做成可執行的施工版文件。確保後續採購、生產、現場施工與驗收都以同一套核准版本為準，避免「圖一套、做一套、驗一套」。",
+              keyPoints: [
+                "整理設計輸入條件，輸出配置圖、單線圖、盤圖、回路表、接地圖與施工詳圖。",
+                "同步確認設備規格、材料表、測試方法與驗收基準。",
+                "送客戶/甲方審查，退件即修正再送。"
+              ],
+              flow: [
+                { type: "step", text: "啟動細部設計" },
+                { type: "step", text: "整理設計輸入條件" },
+                { type: "step", text: "產出配置圖/單線圖/盤圖/接地圖/施工詳圖" },
+                { type: "step", text: "確認設備規格/BOM/材料表" },
+                { type: "step", text: "確認施工方法/測試方法/驗收基準" },
+                { type: "step", text: "提送甲方/客戶/地主審查" },
+                { type: "decision", text: "是否核准?", yes: "設計凍結 / 發行施工版文件", no: "彙整退件意見 → 修圖/修BOM/修時程/修責任界面 → 重新提送" }
+              ]
+            },
+            {
+              id: 4,
+              icon: <ShoppingCart size={20} />,
+              title: "階段 4 | 採購、備料、生產與出貨準備",
+              goal: "確保料件、盤體、設備與出貨資料都具可追溯性。在設備離開工廠前就把型號、序號、外觀、配線與出貨文件處理完整，減少案場到貨後才補件或返工。",
+              keyPoints: [
+                "SCM 依施工版文件下單，特別盯長交期料件與客製件。",
+                "工廠完成盤體製作、預組裝、標示與OQC。",
+                "物流、吊裝、卸貨動線與案場暫存區需事先確認。"
+              ],
+              flow: [
+                { type: "step", text: "施工版文件核准" },
+                { type: "step", text: "SCM/採購下單" },
+                { type: "step", text: "確認長交期料件" },
+                { type: "step", text: "工廠生產/盤體製作/標示/預組裝" },
+                { type: "step", text: "出貨前檢查/OQC/序號建檔" },
+                { type: "step", text: "準備裝箱清單/型號序號清單/出廠文件" },
+                { type: "step", text: "安排物流/吊裝/卸貨計畫" },
+                { type: "step", text: "確認到貨日/暫存區/現場動線", highlight: true }
+              ]
+            },
+            {
+              id: 5,
+              icon: <HardHat size={20} />,
+              title: "階段 5 | 施工前準備",
+              goal: "進場前先完成點交、人員、工安、文件與施工節點確認。建立進場 Gate，避免人員、材料、保險、工安或文件條件未齊就開工。",
+              keyPoints: [
+                "完成工地/材料/設備點交與場勘紀錄。",
+                "提交施工人員名冊、保險資料、施工進度表與自檢表。",
+                "確認 PPE、動線、禁入區、高空作業與施工許可。"
+              ],
+              flow: [
+                { type: "step", text: "施工前準備" },
+                { type: "step", text: "工地/材料/設備點交" },
+                { type: "step", text: "施工人員名冊與保險資料提交" },
+                { type: "step", text: "工安計畫/PPE/禁入/動線/施工許可" },
+                { type: "step", text: "施工進度表確認" },
+                { type: "step", text: "重要節點自檢表送審" },
+                { type: "step", text: "施工前照片與場勘紀錄" },
+                { type: "step", text: "確認可進場施工", highlight: true }
+              ]
+            },
+            {
+              id: 6,
+              icon: <MapIcon size={20} />,
+              title: "階段 6 | 第一階段工程:現場條件建置",
+              goal: "先把設備安全進場與安裝所需的基礎條件做對。完成基礎、接地、配管、鋼構與防護等前置工程，讓第二階段設備能在合格條件下進場。",
+              keyPoints: [
+                "整地、基礎、線溝、配管、穿牆、防水封堵與接地施工。",
+                "確認承載、平整度、動線、鋼構與消防路徑。",
+                "重要節點完成自檢後，才能開放設備進場。"
+              ],
+              flow: [
+                { type: "step", text: "第一階段工程" },
+                { type: "step", text: "整地/基礎/土建" },
+                { type: "step", text: "線溝/配管/穿牆/防水封堵" },
+                { type: "step", text: "接地系統施工" },
+                { type: "step", text: "鋼構/圍籬/消防路徑預備" },
+                { type: "step", text: "重要節點自檢" },
+                { type: "decision", text: "條件是否符合設備進場?", yes: "開放第二階段設備進場", no: "改善現場條件 → 重新自檢" }
+              ]
+            },
+            {
+              id: 7,
+              icon: <Wrench size={20} />,
+              title: "階段 7 | 第二階段工程:設備進場、安裝與整合",
+              goal: "把櫃體、盤體、動力線、控制線、通訊線與附屬系統完整接起來。完成設備定位、固定、配線、接地、標示、消防與冷卻等整合工作，並留下可驗證的施工證據。",
+              keyPoints: [
+                "設備卸貨、吊掛、定位、水平與固定。",
+                "動力線、控制線、通訊線分流施工，端子壓接與標示完整。",
+                "冷卻、消防、UPS、偵測與接地整合完成。"
+              ],
+              flow: [
+                { type: "step", text: "設備進場" },
+                { type: "step", text: "卸貨/吊掛/外觀確認" },
+                { type: "step", text: "櫃體定位/水平/固定" },
+                { type: "step", text: "PCS/EMS/盤體/AMI 安裝" },
+                { type: "step", text: "動力線/控制線/通訊線分流施工" },
+                { type: "step", text: "端子壓接/線號標示/回路標示" },
+                { type: "step", text: "冷卻/消防/偵測/UPS整合" },
+                { type: "step", text: "接地完整性確認" },
+                { type: "step", text: "清場與完工狀態整理", highlight: true }
+              ]
+            },
+            {
+              id: 8,
+              icon: <Zap size={20} />,
+              title: "階段 8 | 送電前檢查與設備驗收",
+              goal: "先驗設備與安全條件，再允許進入上電調試。建立送電 Gate，避免在文件未齊、設備未核對或安全條件未確認的狀況下直接上電。",
+              keyPoints: [
+                "核對文件版本、型號、序號、安裝狀態與標示。",
+                "完成接地、絕緣、漏電與E-Stop 安全確認。",
+                "設備驗收不合格時，先改善再驗，不得跳過。"
+              ],
+              flow: [
+                { type: "step", text: "送電前檢查" },
+                { type: "step", text: "文件版本確認" },
+                { type: "step", text: "型號/序號/安裝狀態核對" },
+                { type: "step", text: "接地阻值/絕緣/漏電量測" },
+                { type: "step", text: "E-Stop/安全條件確認" },
+                { type: "step", text: "設備驗收單逐項檢查" },
+                { type: "decision", text: "設備驗收是否合格?", yes: "允許進入上電與調試", no: "缺失改善/補件/補測 → 重新驗收" }
+              ]
+            },
+            {
+              id: 9,
+              icon: <Activity size={20} />,
+              title: "階段 9 | 上電、調試、現場驗收與性能測試",
+              goal: "依 SOP 做上電與整合驗證，確認系統能安全且穩定運轉。驗證待機、運轉、停機、保護邏輯、通訊、冷卻、UPS與充放電性能，形成可交付的現場驗收結果。",
+              keyPoints: [
+                "依上電 SOP執行並留存紀錄，確認HMI/EMS/PCS/電池狀態正常。",
+                "測試 E-Stop、保護邏輯、通訊失聯、冷卻與消防聯動。",
+                "完成功率、容量、效率與趨勢紀錄。"
+              ],
+              flow: [
+                { type: "step", text: "上電前會議" },
+                { type: "step", text: "依 SOP 執行上電" },
+                { type: "step", text: "待機/運轉/停機流程測試" },
+                { type: "step", text: "HMI/EMS/PCS/電池狀態確認" },
+                { type: "step", text: "通訊/電表/告警/事件紀錄確認" },
+                { type: "step", text: "保護邏輯測試" },
+                { type: "step", text: "冷卻/UPS/消防聯動確認" },
+                { type: "step", text: "功率/容量/效率趨勢紀錄" },
+                { type: "decision", text: "現場驗收是否合格?", yes: "進入正式驗收與移交", no: "缺失改善/重測/補測 → 重新驗收" }
+              ]
+            },
+            {
+              id: 10,
+              icon: <CheckCircle size={20} />,
+              title: "階段 10 | 缺失管理、正式驗收與移交",
+              goal: "把缺失清單清零，文件交齊，才算真正交付。透過缺失單、責任人與期限管理，完成複驗、教育訓練與正式簽認，避免帶病移交。",
+              keyPoints: [
+                "建立缺失清單並指定責任單位、期限與補證要求。",
+                "缺失未清零前，不視為驗收完成。",
+                "完成教育訓練、文件交底與正式移交。"
+              ],
+              flow: [
+                { type: "step", text: "彙整驗收結果" },
+                { type: "step", text: "建立缺失清單" },
+                { type: "step", text: "指派責任單位與期限" },
+                { type: "decision", text: "缺失是否清零?", yes: "文件交齊", no: "改善完成並補證據 → 複驗" },
+                { type: "step", text: "教育訓練/操作交底" },
+                { type: "step", text: "正式驗收簽認" },
+                { type: "step", text: "正式移交", highlight: true }
+              ]
+            },
+            {
+              id: 11,
+              icon: <ShieldCheck size={20} />,
+              title: "階段 11 | 試運轉、保固、售後閉環與結案",
+              goal: "不是簽完字就結束，而是要把異常、保固與經驗回寫做完。在試運轉與保固期內持續監控異常、處理RCA、啟動售後支援，最後完成專案複盤與知識沉澱。",
+              keyPoints: [
+                "正式移交後進入試運轉與觀察期，持續追蹤告警與穩定度。",
+                "發生異常由 ASM 主責協調 RCA、改善、再驗證。",
+                "結案時要做成本/時程/風險/缺失回顧，更新SOP 與知識庫。"
+              ],
+              flow: [
+                { type: "step", text: "正式移交後" },
+                { type: "step", text: "試運轉/觀察期" },
+                { type: "step", text: "異常監控/告警追蹤" },
+                { type: "decision", text: "是否有重大缺失?", yes: "ASM 主責協調 RCA/改善/再驗證", no: "保固期起算" },
+                { type: "step", text: "售後 SOP/RMA/維護窗口啟動" },
+                { type: "step", text: "專案結案會議" },
+                { type: "step", text: "成本/風險/時程/缺失回顧" },
+                { type: "step", text: "文件歸檔/模板更新/知識庫沉澱", highlight: true }
+              ]
+            }
+          ]
+        };
+
+        // --- 元件區 ---
+        const FlowChart = ({ flowData }) => {
           return (
-            <React.Fragment key={index}>
-              <div className={`w-full md:w-3/4 p-4 rounded-xl border text-center shadow-sm relative z-10 transition-transform hover:scale-[1.02] ${
-                node.highlight ? 'bg-blue-600 text-white border-blue-700 shadow-md font-bold' : 'bg-white border-slate-200 text-slate-800'
-              }`}>
-                {node.text.split('\n').map((line, i) => (
-                  <div key={i} className={i > 0 ? "text-sm mt-1 opacity-90" : ""}>{line}</div>
-                ))}
-              </div>
-              {!isLast && <ArrowDown className="text-slate-400 my-2" size={24} />}
-            </React.Fragment>
-          );
-        }
-
-        if (node.type === 'decision') {
-          return (
-            <React.Fragment key={index}>
-              <div className="w-full relative py-2">
-                <div className="mx-auto w-3/4 md:w-1/2 p-4 bg-amber-50 border-2 border-amber-300 rounded-lg text-center shadow-sm relative z-10">
-                  <span className="text-amber-800 font-bold flex items-center justify-center gap-2">
-                    <AlertTriangle size={18} />
-                    {node.text}
-                  </span>
-                </div>
+            <div className="flex flex-col items-center py-8 w-full max-w-2xl mx-auto space-y-2">
+              {flowData.map((node, index) => {
+                const isLast = index === flowData.length - 1;
                 
-                {/* 決策分支 UI */}
-                <div className="flex w-full justify-between mt-6 px-2 md:px-12 relative">
-                  {/* 連接線 (視覺效果) */}
-                  <div className="absolute top-[-24px] left-1/4 w-1/2 h-[24px] border-l-2 border-r-2 border-t-2 border-slate-300 rounded-t-xl z-0" style={{ transform: 'translateY(12px)' }}></div>
-                  
-                  {/* YES 路線 */}
-                  <div className="flex flex-col items-center w-[48%] relative z-10">
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full mb-3 border border-green-200">是 (YES)</span>
-                    <div className="w-full p-3 bg-green-50 border border-green-200 rounded-lg text-center text-sm shadow-sm text-green-900">
-                      {node.yes}
-                    </div>
-                  </div>
-                  
-                  {/* NO 路線 */}
-                  <div className="flex flex-col items-center w-[48%] relative z-10">
-                    <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full mb-3 border border-red-200">否 (NO)</span>
-                    <div className="w-full p-3 bg-red-50 border border-red-200 rounded-lg text-center text-sm shadow-sm text-red-900">
-                      {node.no}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {!isLast && <div className="h-6"></div>} {/* 增加分支後的間距 */}
-            </React.Fragment>
-          );
-        }
-        return null;
-      })}
-    </div>
-  );
-};
+                if (node.type === 'step') {
+                  return (
+                    <React.Fragment key={index}>
+                      <div className={`w-full md:w-3/4 p-4 rounded-xl border text-center shadow-sm relative z-10 transition-transform hover:scale-[1.02] ${
+                        node.highlight ? 'bg-blue-600 text-white border-blue-700 shadow-md font-bold' : 'bg-white border-slate-200 text-slate-800'
+                      }`}>
+                        {node.text.split('\n').map((line, i) => (
+                          <div key={i} className={i > 0 ? "text-sm mt-1 opacity-90" : ""}>{line}</div>
+                        ))}
+                      </div>
+                      {!isLast && <ArrowDown className="text-slate-400 my-2" size={24} />}
+                    </React.Fragment>
+                  );
+                }
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState(0); // 0 = Home, 1-11 = Stages
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  const handleTabClick = (id) => {
-    setActiveTab(id);
-    setIsSidebarOpen(false); // Mobile: close sidebar on click
-  };
-
-  const activeStage = activeTab > 0 ? projectData.stages.find(s => s.id === activeTab) : null;
-
-  return (
-    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-800">
-      
-      {/* 側邊導覽列 (Desktop) / 抽屜式選單 (Mobile) */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-slate-300 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between p-4 border-b border-slate-700">
-          <div className="font-bold text-lg text-white flex items-center gap-2">
-            <Zap className="text-blue-400" />
-            專案流程系統
-          </div>
-          <button className="lg:hidden text-slate-300 hover:text-white" onClick={toggleSidebar}>
-            <X size={24} />
-          </button>
-        </div>
-        
-        <div className="p-4 overflow-y-auto h-[calc(100vh-70px)] custom-scrollbar">
-          <ul className="space-y-1">
-            <li>
-              <button 
-                onClick={() => handleTabClick(0)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === 0 ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white'}`}
-              >
-                <Home size={20} />
-                <span className="font-medium">首頁 - 專案總覽</span>
-              </button>
-            </li>
-            
-            <li className="pt-4 pb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              專案階段 (1 - 11)
-            </li>
-
-            {projectData.stages.map((stage) => (
-              <li key={stage.id}>
-                <button 
-                  onClick={() => handleTabClick(stage.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors ${activeTab === stage.id ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white'}`}
-                >
-                  <span className={`${activeTab === stage.id ? 'text-white' : 'text-blue-400'}`}>{stage.icon}</span>
-                  <span className="text-sm font-medium line-clamp-1">{stage.title}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </aside>
-
-      {/* 遮罩層 (Mobile) */}
-      {isSidebarOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm" onClick={toggleSidebar}></div>
-      )}
-
-      {/* 主要內容區 */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* 頂部導覽列 (Mobile) */}
-        <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-4 lg:hidden sticky top-0 z-30">
-          <button onClick={toggleSidebar} className="text-slate-500 hover:text-slate-800 bg-slate-100 p-2 rounded-md">
-            <Menu size={24} />
-          </button>
-          <div className="font-bold text-slate-800 truncate">
-            {activeTab === 0 ? "首頁 - 專案總覽" : activeStage?.title}
-          </div>
-        </header>
-
-        {/* 內容捲動區 */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
-          
-          {/* == 首頁視圖 == */}
-          {activeTab === 0 && (
-            <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              
-              <div className="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-2xl p-8 md:p-12 text-white shadow-xl">
-                <h1 className="text-3xl md:text-4xl font-extrabold mb-4">{projectData.overview.title}</h1>
-                <p className="text-blue-100 text-lg md:text-xl font-medium max-w-3xl leading-relaxed">{projectData.overview.subtitle}</p>
-                <div className="mt-6 inline-flex items-center bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-medium">
-                  製作日期：{projectData.overview.date}
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* 文件定位 */}
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                  <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-slate-800">
-                    <Map className="text-blue-600" />
-                    文件定位
-                  </h2>
-                  <ul className="space-y-3 text-slate-600">
-                    {projectData.overview.positioning.map((item, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <CheckCircle size={18} className="text-green-500 shrink-0 mt-0.5" />
-                        <span className="leading-relaxed">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* 這份版本強調的3件事 */}
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                  <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-slate-800">
-                    <Play className="text-blue-600" />
-                    這份版本強調的 3 件事
-                  </h2>
-                  <ul className="space-y-3 text-slate-600">
-                    {projectData.overview.highlights.map((item, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <CheckCircle size={18} className="text-amber-500 shrink-0 mt-0.5" />
-                        <span className="leading-relaxed">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* 核心設計原則與 5 個 Gate */}
-              <div className="bg-slate-900 rounded-xl p-8 text-white shadow-lg overflow-hidden relative">
-                <div className="absolute -right-10 -top-10 opacity-10">
-                  <ShieldCheck size={200} />
-                </div>
-                <div className="relative z-10 grid md:grid-cols-2 gap-8">
-                  <div>
-                    <h2 className="text-2xl font-bold mb-6 text-blue-300">設計原則</h2>
-                    <ul className="space-y-4 text-slate-300">
-                      {projectData.overview.principles.map((item, i) => (
-                        <li key={i} className="flex items-start gap-3 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                          <Zap size={18} className="text-blue-400 shrink-0 mt-1" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold mb-6 text-amber-300">5 個關鍵 Gate (節點門檻)</h2>
-                    <div className="space-y-3">
-                      {projectData.overview.gates.map((gate, i) => (
-                        <div key={i} className="bg-slate-800 p-4 rounded-lg border-l-4 border-amber-400 flex flex-col">
-                          <span className="font-bold text-white mb-1">{gate.name}</span>
-                          <span className="text-sm text-slate-400">{gate.desc}</span>
+                if (node.type === 'decision') {
+                  return (
+                    <React.Fragment key={index}>
+                      <div className="w-full relative py-2">
+                        <div className="mx-auto w-3/4 md:w-1/2 p-4 bg-amber-50 border-2 border-amber-300 rounded-lg text-center shadow-sm relative z-10">
+                          <span className="text-amber-800 font-bold flex items-center justify-center gap-2">
+                            <AlertTriangle size={18} />
+                            {node.text}
+                          </span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-center py-8">
-                <button 
-                  onClick={() => handleTabClick(1)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2 mx-auto"
-                >
-                  開始瀏覽專案流程 <ArrowDown size={20} />
-                </button>
-              </div>
-
+                        
+                        {/* 決策分支 UI */}
+                        <div className="flex w-full justify-between mt-6 px-2 md:px-12 relative">
+                          <div className="absolute top-[-24px] left-1/4 w-1/2 h-[24px] border-l-2 border-r-2 border-t-2 border-slate-300 rounded-t-xl z-0" style={{ transform: 'translateY(12px)' }}></div>
+                          
+                          <div className="flex flex-col items-center w-[48%] relative z-10">
+                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full mb-3 border border-green-200">是 (YES)</span>
+                            <div className="w-full p-3 bg-green-50 border border-green-200 rounded-lg text-center text-sm shadow-sm text-green-900">
+                              {node.yes}
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col items-center w-[48%] relative z-10">
+                            <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full mb-3 border border-red-200">否 (NO)</span>
+                            <div className="w-full p-3 bg-red-50 border border-red-200 rounded-lg text-center text-sm shadow-sm text-red-900">
+                              {node.no}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {!isLast && <div className="h-6"></div>}
+                    </React.Fragment>
+                  );
+                }
+                return null;
+              })}
             </div>
-          )}
+          );
+        };
 
-          {/* == 階段視圖 == */}
-          {activeTab > 0 && activeStage && (
-            <div className="max-w-4xl mx-auto pb-20 animate-in fade-in slide-in-from-right-4 duration-300">
+        function App() {
+          const [activeTab, setActiveTab] = useState(0); 
+          const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+          const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+          const handleTabClick = (id) => {
+            setActiveTab(id);
+            setIsSidebarOpen(false);
+          };
+
+          const activeStage = activeTab > 0 ? projectData.stages.find(s => s.id === activeTab) : null;
+
+          return (
+            <div className="min-h-screen bg-slate-50 flex font-sans text-slate-800">
               
-              {/* 階段標題卡片 */}
-              <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 mb-8 border-t-4 border-t-blue-600">
-                <div className="flex items-center gap-4 text-blue-600 mb-4">
-                  <div className="p-3 bg-blue-50 rounded-xl">
-                    {activeStage.icon}
+              {/* 側邊導覽列 */}
+              <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-slate-300 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="flex items-center justify-between p-4 border-b border-slate-700">
+                  <div className="font-bold text-lg text-white flex items-center gap-2">
+                    <Zap className="text-blue-400" />
+                    專案流程系統
                   </div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-slate-800">{activeStage.title}</h1>
+                  <button className="lg:hidden text-slate-300 hover:text-white" onClick={toggleSidebar}>
+                    <X size={24} />
+                  </button>
                 </div>
                 
-                <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 mb-6">
-                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">階段目標</h3>
-                  <p className="text-slate-700 leading-relaxed font-medium">{activeStage.goal}</p>
-                </div>
+                <div className="p-4 overflow-y-auto h-[calc(100vh-70px)] custom-scrollbar">
+                  <ul className="space-y-1">
+                    <li>
+                      <button 
+                        onClick={() => handleTabClick(0)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === 0 ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white'}`}
+                      >
+                        <Home size={20} />
+                        <span className="font-medium">首頁 - 專案總覽</span>
+                      </button>
+                    </li>
+                    
+                    <li className="pt-4 pb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      專案階段 (1 - 11)
+                    </li>
 
-                <div>
-                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">本階段必做重點</h3>
-                  <ul className="grid md:grid-cols-1 gap-3">
-                    {activeStage.keyPoints.map((point, i) => (
-                      <li key={i} className="flex items-start gap-3 p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
-                        <CheckCircle size={20} className="text-blue-500 shrink-0" />
-                        <span className="text-slate-700">{point}</span>
+                    {projectData.stages.map((stage) => (
+                      <li key={stage.id}>
+                        <button 
+                          onClick={() => handleTabClick(stage.id)}
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-colors ${activeTab === stage.id ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white'}`}
+                        >
+                          <span className={`${activeTab === stage.id ? 'text-white' : 'text-blue-400'}`}>{stage.icon}</span>
+                          <span className="text-sm font-medium line-clamp-1">{stage.title}</span>
+                        </button>
                       </li>
                     ))}
                   </ul>
                 </div>
-              </div>
+              </aside>
 
-              {/* 流程圖區塊 */}
-              <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200">
-                <h2 className="text-xl font-bold text-slate-800 mb-8 text-center pb-4 border-b border-slate-100">
-                  標準作業流程圖
-                </h2>
-                
-                <div className="bg-slate-50 rounded-xl p-4 md:p-8 border border-slate-200">
-                  <FlowChart flowData={activeStage.flow} />
+              {/* 遮罩層 */}
+              {isSidebarOpen && (
+                <div className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm" onClick={toggleSidebar}></div>
+              )}
+
+              {/* 主要內容區 */}
+              <main className="flex-1 flex flex-col h-screen overflow-hidden">
+                <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-4 lg:hidden sticky top-0 z-30">
+                  <button onClick={toggleSidebar} className="text-slate-500 hover:text-slate-800 bg-slate-100 p-2 rounded-md">
+                    <Menu size={24} />
+                  </button>
+                  <div className="font-bold text-slate-800 truncate">
+                    {activeTab === 0 ? "首頁 - 專案總覽" : activeStage?.title}
+                  </div>
+                </header>
+
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
+                  
+                  {activeTab === 0 && (
+                    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
+                      <div className="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-2xl p-8 md:p-12 text-white shadow-xl">
+                        <h1 className="text-3xl md:text-4xl font-extrabold mb-4">{projectData.overview.title}</h1>
+                        <p className="text-blue-100 text-lg md:text-xl font-medium max-w-3xl leading-relaxed">{projectData.overview.subtitle}</p>
+                        <div className="mt-6 inline-flex items-center bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-medium">
+                          製作日期：{projectData.overview.date}
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                          <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-slate-800">
+                            <MapIcon className="text-blue-600" />
+                            文件定位
+                          </h2>
+                          <ul className="space-y-3 text-slate-600">
+                            {projectData.overview.positioning.map((item, i) => (
+                              <li key={i} className="flex items-start gap-3">
+                                <CheckCircle size={18} className="text-green-500 shrink-0 mt-0.5" />
+                                <span className="leading-relaxed">{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                          <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-slate-800">
+                            <Play className="text-blue-600" />
+                            這份版本強調的 3 件事
+                          </h2>
+                          <ul className="space-y-3 text-slate-600">
+                            {projectData.overview.highlights.map((item, i) => (
+                              <li key={i} className="flex items-start gap-3">
+                                <CheckCircle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+                                <span className="leading-relaxed">{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-900 rounded-xl p-8 text-white shadow-lg overflow-hidden relative">
+                        <div className="absolute -right-10 -top-10 opacity-10">
+                          <ShieldCheck size={200} />
+                        </div>
+                        <div className="relative z-10 grid md:grid-cols-2 gap-8">
+                          <div>
+                            <h2 className="text-2xl font-bold mb-6 text-blue-300">設計原則</h2>
+                            <ul className="space-y-4 text-slate-300">
+                              {projectData.overview.principles.map((item, i) => (
+                                <li key={i} className="flex items-start gap-3 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                                  <Zap size={18} className="text-blue-400 shrink-0 mt-1" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-bold mb-6 text-amber-300">5 個關鍵 Gate (節點門檻)</h2>
+                            <div className="space-y-3">
+                              {projectData.overview.gates.map((gate, i) => (
+                                <div key={i} className="bg-slate-800 p-4 rounded-lg border-l-4 border-amber-400 flex flex-col">
+                                  <span className="font-bold text-white mb-1">{gate.name}</span>
+                                  <span className="text-sm text-slate-400">{gate.desc}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-center py-8">
+                        <button 
+                          onClick={() => handleTabClick(1)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2 mx-auto"
+                        >
+                          開始瀏覽專案流程 <ArrowDown size={20} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab > 0 && activeStage && (
+                    <div className="max-w-4xl mx-auto pb-20 animate-in fade-in duration-300">
+                      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 mb-8 border-t-4 border-t-blue-600">
+                        <div className="flex items-center gap-4 text-blue-600 mb-4">
+                          <div className="p-3 bg-blue-50 rounded-xl">
+                            {activeStage.icon}
+                          </div>
+                          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">{activeStage.title}</h1>
+                        </div>
+                        
+                        <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 mb-6">
+                          <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">階段目標</h3>
+                          <p className="text-slate-700 leading-relaxed font-medium">{activeStage.goal}</p>
+                        </div>
+
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">本階段必做重點</h3>
+                          <ul className="grid md:grid-cols-1 gap-3">
+                            {activeStage.keyPoints.map((point, i) => (
+                              <li key={i} className="flex items-start gap-3 p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
+                                <CheckCircle size={20} className="text-blue-500 shrink-0" />
+                                <span className="text-slate-700">{point}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200">
+                        <h2 className="text-xl font-bold text-slate-800 mb-8 text-center pb-4 border-b border-slate-100">
+                          標準作業流程圖
+                        </h2>
+                        
+                        <div className="bg-slate-50 rounded-xl p-4 md:p-8 border border-slate-200">
+                          <FlowChart flowData={activeStage.flow} />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center mt-8">
+                        <button 
+                          onClick={() => handleTabClick(activeTab - 1)}
+                          disabled={activeTab === 1}
+                          className={`px-6 py-2.5 rounded-lg font-medium transition-colors ${activeTab === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 shadow-sm'}`}
+                        >
+                          上一階段
+                        </button>
+                        <button 
+                          onClick={() => handleTabClick(activeTab + 1)}
+                          disabled={activeTab === projectData.stages.length}
+                          className={`px-6 py-2.5 rounded-lg font-medium transition-colors ${activeTab === projectData.stages.length ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'}`}
+                        >
+                          下一階段
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-
-              {/* 底部導覽 */}
-              <div className="flex justify-between items-center mt-8">
-                <button 
-                  onClick={() => handleTabClick(activeTab - 1)}
-                  disabled={activeTab === 1}
-                  className={`px-6 py-2.5 rounded-lg font-medium transition-colors ${activeTab === 1 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 shadow-sm'}`}
-                >
-                  上一階段
-                </button>
-                <button 
-                  onClick={() => handleTabClick(activeTab + 1)}
-                  disabled={activeTab === projectData.stages.length}
-                  className={`px-6 py-2.5 rounded-lg font-medium transition-colors ${activeTab === projectData.stages.length ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'}`}
-                >
-                  下一階段
-                </button>
-              </div>
-
+              </main>
             </div>
-          )}
-        </div>
-      </main>
+          );
+        }
 
-      <style dangerouslySetInnerHTML={{__html: `
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: rgba(156, 163, 175, 0.5);
-          border-radius: 10px;
-        }
-        .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-          background-color: rgba(107, 114, 128, 0.8);
-        }
-      `}} />
-    </div>
-  );
-}
+        // --- 渲染應用程式 ---
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>
