@@ -16,23 +16,27 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background-color: #f8fafc; }
         /* 自訂卷軸樣式 */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.5); border-radius: 10px; }
         .custom-scrollbar:hover::-webkit-scrollbar-thumb { background-color: rgba(107, 114, 128, 0.8); }
+        
+        /* 時間軸線動畫 */
+        .timeline-line {
+            background: linear-gradient(to bottom, #3b82f6, #8b5cf6, #10b981, #f59e0b, #ef4444, #64748b);
+        }
     </style>
 </head>
 <body>
     <!-- React 應用程式的掛載點 -->
     <div id="root"></div>
 
-    <!-- 注意 type 是 text/babel，這會讓 Babel 知道要編譯這段程式碼 -->
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState } = React;
 
-        // --- 內建 SVG 圖示庫 (取代原本的 lucide-react 以支援單一 HTML 執行) ---
+        // --- 內建 SVG 圖示庫 ---
         const Icon = ({ path, size = 24, className = "" }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
                 {path}
@@ -53,6 +57,7 @@
         const Menu = (p) => <Icon {...p} path={<><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></>} />;
         const X = (p) => <Icon {...p} path={<><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></>} />;
         const ArrowDown = (p) => <Icon {...p} path={<><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></>} />;
+        const ArrowRight = (p) => <Icon {...p} path={<><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>} />;
         const AlertTriangle = (p) => <Icon {...p} path={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>} />;
         const Play = (p) => <Icon {...p} path={<><polygon points="5 3 19 12 5 21 5 3"/></>} />;
 
@@ -86,6 +91,15 @@
               { name: "正式移交 Gate", desc: "缺失清零、文件交齊、教育訓練完成。" }
             ]
           },
+          // 將11個階段分組為6大核心進程 (用於首頁時間軸)
+          majorPhases: [
+            { title: "商機立案", color: "text-blue-600", bg: "bg-blue-100", stages: [1, 2] },
+            { title: "設計送審", color: "text-purple-600", bg: "bg-purple-100", stages: [3] },
+            { title: "施工準備", color: "text-amber-600", bg: "bg-amber-100", stages: [4, 5, 6] },
+            { title: "設備安裝", color: "text-emerald-600", bg: "bg-emerald-100", stages: [7, 8, 9] },
+            { title: "驗收移交", color: "text-orange-600", bg: "bg-orange-100", stages: [10] },
+            { title: "保固結案", color: "text-slate-600", bg: "bg-slate-200", stages: [11] }
+          ],
           stages: [
             {
               id: 1,
@@ -213,7 +227,7 @@
             {
               id: 7,
               icon: <Wrench size={20} />,
-              title: "階段 7 | 第二階段工程:設備進場、安裝與整合",
+              title: "階段 7 | 第二階段工程:設備進場整合",
               goal: "把櫃體、盤體、動力線、控制線、通訊線與附屬系統完整接起來。完成設備定位、固定、配線、接地、標示、消防與冷卻等整合工作，並留下可驗證的施工證據。",
               keyPoints: [
                 "設備卸貨、吊掛、定位、水平與固定。",
@@ -255,7 +269,7 @@
             {
               id: 9,
               icon: <Activity size={20} />,
-              title: "階段 9 | 上電、調試、現場驗收與性能測試",
+              title: "階段 9 | 上電、調試與現場驗收",
               goal: "依 SOP 做上電與整合驗證，確認系統能安全且穩定運轉。驗證待機、運轉、停機、保護邏輯、通訊、冷卻、UPS與充放電性能，形成可交付的現場驗收結果。",
               keyPoints: [
                 "依上電 SOP執行並留存紀錄，確認HMI/EMS/PCS/電池狀態正常。",
@@ -297,7 +311,7 @@
             {
               id: 11,
               icon: <ShieldCheck size={20} />,
-              title: "階段 11 | 試運轉、保固、售後閉環與結案",
+              title: "階段 11 | 試運轉、保固與售後結案",
               goal: "不是簽完字就結束，而是要把異常、保固與經驗回寫做完。在試運轉與保固期內持續監控異常、處理RCA、啟動售後支援，最後完成專案複盤與知識沉澱。",
               keyPoints: [
                 "正式移交後進入試運轉與觀察期，持續追蹤告警與穩定度。",
@@ -319,6 +333,8 @@
         };
 
         // --- 元件區 ---
+        
+        // 繪製單一階段內的標準作業流程圖
         const FlowChart = ({ flowData }) => {
           return (
             <div className="flex flex-col items-center py-8 w-full max-w-2xl mx-auto space-y-2">
@@ -380,6 +396,77 @@
           );
         };
 
+        // 首頁的「全生命週期總覽圖」元件
+        const MasterRoadmap = ({ onTabClick }) => {
+          return (
+            <div className="bg-white rounded-2xl p-6 md:p-10 shadow-md border border-slate-200 mt-8">
+              <div className="text-center mb-10">
+                <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800">全階段流程總覽 (開案到結案)</h2>
+                <p className="text-slate-500 mt-2">點擊任一階段卡片，可直接查看該階段的詳細標準作業流程與檢核項目。</p>
+              </div>
+
+              <div className="relative max-w-4xl mx-auto">
+                {/* 背景貫穿線 */}
+                <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-1 timeline-line transform md:-translate-x-1/2 rounded-full hidden sm:block"></div>
+
+                <div className="space-y-12">
+                  {projectData.majorPhases.map((phase, pIndex) => (
+                    <div key={pIndex} className="relative z-10">
+                      
+                      {/* 六大進程標題 */}
+                      <div className="flex justify-start md:justify-center mb-6 relative">
+                        <div className={`px-6 py-2 rounded-full font-bold text-sm shadow-sm border ${phase.bg} ${phase.color} flex items-center gap-2 z-20`}>
+                          <div className="w-2 h-2 rounded-full bg-current"></div>
+                          {phase.title}
+                        </div>
+                      </div>
+
+                      {/* 細部階段列表 */}
+                      <div className="space-y-4">
+                        {phase.stages.map((stageId, sIndex) => {
+                          const stage = projectData.stages.find(s => s.id === stageId);
+                          // 決定卡片放在左邊還是右邊 (Desktop)
+                          const isEven = stageId % 2 === 0; 
+                          
+                          return (
+                            <div key={stageId} className={`flex flex-col sm:flex-row items-start sm:items-center w-full ${isEven ? 'sm:flex-row-reverse' : ''}`}>
+                              
+                              {/* 佔位空間 (Desktop) */}
+                              <div className="hidden sm:block sm:w-1/2"></div>
+                              
+                              {/* 中間節點 (Desktop) */}
+                              <div className="hidden sm:flex absolute left-6 md:left-1/2 transform md:-translate-x-1/2 w-6 h-6 bg-white border-4 border-slate-300 rounded-full z-20 items-center justify-center"></div>
+                              
+                              {/* 階段卡片 */}
+                              <div className={`w-full sm:w-1/2 pl-12 pr-0 sm:px-8 mt-2 sm:mt-0 ${isEven ? 'sm:text-right' : 'sm:text-left'}`}>
+                                <div 
+                                  onClick={() => onTabClick(stageId)}
+                                  className={`group bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-400 cursor-pointer transition-all duration-200 ${isEven ? 'hover:-translate-x-1' : 'hover:translate-x-1'}`}
+                                >
+                                  <div className={`flex items-center gap-3 mb-1 ${isEven ? 'sm:flex-row-reverse' : ''}`}>
+                                    <div className={`${phase.color} p-1.5 bg-slate-50 rounded-lg group-hover:scale-110 transition-transform`}>
+                                      {stage.icon}
+                                    </div>
+                                    <h4 className="font-bold text-slate-800 text-base">{stage.title}</h4>
+                                  </div>
+                                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                    {stage.goal}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        };
+
         function App() {
           const [activeTab, setActiveTab] = useState(0); 
           const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -387,6 +474,7 @@
           const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
           const handleTabClick = (id) => {
             setActiveTab(id);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             setIsSidebarOpen(false);
           };
 
@@ -456,8 +544,9 @@
 
                 <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
                   
+                  {/* --- 首頁視圖 --- */}
                   {activeTab === 0 && (
-                    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
+                    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-16">
                       <div className="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-2xl p-8 md:p-12 text-white shadow-xl">
                         <h1 className="text-3xl md:text-4xl font-extrabold mb-4">{projectData.overview.title}</h1>
                         <p className="text-blue-100 text-lg md:text-xl font-medium max-w-3xl leading-relaxed">{projectData.overview.subtitle}</p>
@@ -498,7 +587,10 @@
                         </div>
                       </div>
 
-                      <div className="bg-slate-900 rounded-xl p-8 text-white shadow-lg overflow-hidden relative">
+                      {/* --- 新增：專案生命週期總覽圖 --- */}
+                      <MasterRoadmap onTabClick={handleTabClick} />
+
+                      <div className="bg-slate-900 rounded-xl p-8 text-white shadow-lg overflow-hidden relative mt-8">
                         <div className="absolute -right-10 -top-10 opacity-10">
                           <ShieldCheck size={200} />
                         </div>
@@ -527,18 +619,10 @@
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="text-center py-8">
-                        <button 
-                          onClick={() => handleTabClick(1)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2 mx-auto"
-                        >
-                          開始瀏覽專案流程 <ArrowDown size={20} />
-                        </button>
-                      </div>
                     </div>
                   )}
 
+                  {/* --- 單一階段視圖 --- */}
                   {activeTab > 0 && activeStage && (
                     <div className="max-w-4xl mx-auto pb-20 animate-in fade-in duration-300">
                       <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 mb-8 border-t-4 border-t-blue-600">
